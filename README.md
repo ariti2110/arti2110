@@ -5,14 +5,68 @@ My GitHub profile README showcasing LeetCode stats and coding achievements
 
 ![LeetCode Stats](https://leetcode-status.vercel.app/api/card/aritichawla2110?theme=dark&show_stats=true)
 
-### My Coding Journey
+### 📊 LeetCode Statistics
 
-- **LeetCode Rank**: 1,290,288
-- **Total Problems Solved**: 114/3,846
-- **Easy**: 47/927
-- **Medium**: 29/2010  
-- **Hard**: 38/909
-- **Acceptance Rate**: High
+<table>
+  <tr>
+    <td align="center" width="25%">
+      <div>
+        <h3>🏆 Rank</h3>
+        <h2><b>1,290,288</b></h2>
+      </div>
+    </td>
+    <td align="center" width="25%">
+      <div>
+        <h3>✅ Solved</h3>
+        <h2><b>114</b></h2>
+        <p>out of 3,846</p>
+      </div>
+    </td>
+    <td align="center" width="25%">
+      <div>
+        <h3>⭐ Acceptance Rate</h3>
+        <h2><b>High</b></h2>
+        <p>Active Solver</p>
+      </div>
+    </td>
+    <td align="center" width="25%">
+      <div>
+        <h3>📈 Activity</h3>
+        <h2><b>127</b></h2>
+        <p>submissions/year</p>
+      </div>
+    </td>
+  </tr>
+</table>
+
+### 📋 Problem Difficulty Breakdown
+
+<table>
+  <tr>
+    <td align="center" width="33%">
+      <div>
+        <h3>🟢 Easy</h3>
+        <h2><b>47/927</b></h2>
+        <p style="color:#52c41a">█████░░░░ 5%</p>
+      </div>
+    </td>
+    <td align="center" width="33%">
+      <div>
+        <h3>🟡 Medium</h3>
+        <h2><b>29/2010</b></h2>
+        <p style="color:#faad14">███░░░░░░ 1%</p>
+      </div>
+    </td>
+    <td align="center" width="33%">
+      <div>
+        <h3>🔴 Hard</h3>
+        <h2><b>38/909</b></h2>
+        <p style="color:#f5222d">████░░░░░ 4%</p>
+      </div>
+    </td>
+  </tr>
+</table>
+
 
 ### Languages & Tools
 
