@@ -1,0 +1,31 @@
+name: Update LeetCode Stats
+
+on:
+  schedule:
+    # Update every 6 hours
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  update-stats:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: Update README with LeetCode Stats
+        run: |
+          # Note: The LeetCode badge image is already dynamic and updates automatically
+          # This workflow ensures the README is refreshed periodically
+          
+          # Update the timestamp in the README
+          sed -i "s/Last updated:.*/Last updated: $(date +'%Y-%m-%d %H:%M:%S UTC')/" README.md
+      
+      - name: Commit changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -A
+          git diff --quiet && git diff --staged --quiet || (git commit -m "🔄 Update LeetCode stats [$(date +'%Y-%m-%d')]" && git push)
