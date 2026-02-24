@@ -3,91 +3,52 @@ on:
   schedule:
     - cron: '0 */6 * * *'
   workflow_dispatch:
+
 permissions:
   contents: write
+
 jobs:
-  update-stats:
+  update-readme:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
-
-      - name: Install dependencies
-        run: pip install requests
-
-      - name: Update LeetCode Stats
+      
+      - name: Update LeetCode Stats in README
         run: |
-          import requests
-          import json
-          from datetime import datetime
-
-          username = "aritichawla2110"
-          query = """
-          query getUserProfile($username: String!) {
-            matchedUser(username: $username) {
-              submitStatsGlobal {
-                acSubmissionNum {
-                  difficulty
-                  count
-                }
-              }
-            }
-          }
-          """
-          headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36", "Content-Type": "application/json"}
-          try:
-            response = requests.post("https://leetcode.com/graphql", json={"query": query, "variables": {"username": username}}, headers=headers, timeout=10)
-            data = response.json()
-            if "data" in data and data["data"]["matchedUser"]:
-              stats = data["data"]["matchedUser"]["submitStatsGlobal"]["acSubmissionNum"]
-              total = easy = medium = hard = 0
-              for stat in stats:
-                if stat["difficulty"] == "Easy":
-                  easy = stat["count"]
-                elif stat["difficulty"] == "Medium":
-                  medium = stat["count"]
-                elif stat["difficulty"] == "Hard":
-                  hard = stat["count"]
-              total = easy + medium + hard
-              readme = f"""# aritichawla2110
-## About
-Data Scientist | Software Developer | AI/ML Enthusiast
-
-## LeetCode Stats
-[![LeetCode](https://img.shields.io/badge/LeetCode-FFA116?style=flat&logo=leetcode&logoColor=black)](https://leetcode.com/u/aritichawla2110/)
-
-- **Total Problems Solved**: {total}
-- **Easy**: {easy}
-- **Medium**: {medium}
-- **Hard**: {hard}
-
-*Last Updated: {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}*
-
-## Connect
-- [LeetCode](https://leetcode.com/u/aritichawla2110/)
+          curl -s 'https://leetcode.com/graphql' \
+            -H 'User-Agent: Mozilla/5.0' \
+            -H 'Content-Type: application/json' \
+            -d '{
+              "query": "query { matchedUser(username: \"aritichawla2110\") { submitStatsGlobal { acSubmissionNum { difficulty count } } } }"
+            }' | python3 -c "
+import sys, json
+data = json.load(sys.stdin)
+if 'data' in data:
+    stats = data['data']['matchedUser']['submitStatsGlobal']['acSubmissionNum']
+    easy = medium = hard = 0
+    for s in stats:
+        if s['difficulty'] == 'Easy': easy = s['count']
+        elif s['difficulty'] == 'Medium': medium = s['count']
+        elif s['difficulty'] == 'Hard': hard = s['count']
+    total = easy + medium + hard
+    readme = f'''# aritichawla2110\n\n## About Me\nData Scientist | Software Developer | AI/ML Enthusiast\n\n## LeetCode Stats\n[![LeetCode](https://img.shields.io/badge/LeetCode-FFA116?style=flat&logo=leetcode&logoColor=black)](https://leetcode.com/u/aritichawla2110/)\n\n- **Total**: {total}
+- **Easy**: {easy} ✅
+- **Medium**: {medium} 🟡  
+- **Hard**: {hard} 🔴\n\n*Updated: $(date)*\n\n## Connect\n- [LeetCode](https://leetcode.com/u/aritichawla2110/)
 - [GitHub](https://github.com/ariti2110)
-- [LinkedIn](https://linkedin.com/in/ariti-chawla)
-"""
-              with open("README.md", "w") as f:
-                f.write(readme)
-          except Exception as e:
-            print(f"Error: {e}")
-        shell: python
-
+- [LinkedIn](https://linkedin.com/in/ariti-chawla)'''
+    with open('README.md', 'w') as f:
+        f.write(readme)
+" 2>/dev/null || echo 'Failed to fetch stats'
+      
       - name: Commit changes
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add -A
-          if git diff --cached --quiet; then
-            echo "No changes to commit"
+          git config user.email "action@github.com"
+          git config user.name "GitHub Actions"
+          if git diff --quiet README.md; then
+            echo "No changes"
           else
-            git commit -m "🔄 Update LeetCode stats - $(date +'%Y-%m-%d %H:%M')"
-            git push origin main
+            git add README.md
+            git commit -m "🔄 Update LeetCode stats [$(date +'%Y-%m-%d')]"
+            git push
           fi
