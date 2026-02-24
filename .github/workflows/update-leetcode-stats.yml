@@ -6,37 +6,34 @@ on:
 permissions:
   contents: write
 jobs:
-  update:
+  update-stats:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      - run: pip install requests
       - name: Update README
-        run: |
-          cat > update_stats.py << 'EOF'
-import requests
-import json
+        run: python3 << 'PYTHON_SCRIPT'
+import requests, json, re
 from datetime import datetime
-username = "aritichawla2110"
-query = "query { matchedUser(username: \\"aritichawla2110\\") { submitStatsGlobal { acSubmissionNum { difficulty count } } } }"
-headers = {"User-Agent": "Mozilla/5.0", "Content-Type": "application/json"}
-response = requests.post("https://leetcode.com/graphql", json={"query": query}, headers=headers, timeout=10)
+
+response = requests.post('https://leetcode.com/graphql',
+  json={'query': 'query{matchedUser(username:"aritichawla2110"){submitStatsGlobal{acSubmissionNum{difficulty count}}}}'},
+  headers={'User-Agent': 'Mozilla/5.0', 'Content-Type': 'application/json'}, timeout=10)
+
 data = response.json()
-if "data" in data and data["data"]["matchedUser"]:
-  stats = data["data"]["matchedUser"]["submitStatsGlobal"]["acSubmissionNum"]
-  easy = medium = hard = 0
-  for s in stats:
-    if s["difficulty"] == "Easy": easy = s["count"]
-    elif s["difficulty"] == "Medium": medium = s["count"]
-    elif s["difficulty"] == "Hard": hard = s["count"]
-  total = easy + medium + hard
-  content = f"""# aritichawla2110\n\n## About\nData Scientist | Software Developer | AI/ML Enthusiast\n\n## LeetCode Stats\n- Total: {total}\n- Easy: {easy}\n- Medium: {medium}\n- Hard: {hard}\n\nUpdated: {datetime.now().isoformat()}\n\n[View Profile](https://leetcode.com/u/aritichawla2110/)"""
-  open("README.md", "w").write(content)
-EOF
-          pip install requests
-          python3 update_stats.py
-      - name: Commit
-        run: |
+if data.get('data', {}).get('matchedUser'):
+  stats = {}
+  for stat in data['data']['matchedUser']['submitStatsGlobal']['acSubmissionNum']:
+    stats[stat['difficulty']] = stat['count']
+  total = sum(stats.values())
+  readme = f'''# aritichawla2110\n## About\nData Scientist | Software Developer\n## LeetCode\nTotal: {total}, Easy: {stats.get("Easy",0)}, Medium: {stats.get("Medium",0)}, Hard: {stats.get("Hard",0)}\nUpdated: {datetime.now().isoformat()}\n[Profile](https://leetcode.com/u/aritichawla2110/)'''
+  open('README.md','w').write(readme)
+PYTHON_SCRIPT
+      - run: |
           git config user.email "action@github.com"
           git config user.name "GitHub Action"
           git add -A
-          git diff --quiet && git diff --staged --quiet || git commit -m "Update LeetCode stats" && git push
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update LeetCode stats" && git push)
