@@ -3,52 +3,40 @@ on:
   schedule:
     - cron: '0 */6 * * *'
   workflow_dispatch:
-
 permissions:
   contents: write
-
 jobs:
-  update-readme:
+  update:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Update LeetCode Stats in README
+      - name: Update README
         run: |
-          curl -s 'https://leetcode.com/graphql' \
-            -H 'User-Agent: Mozilla/5.0' \
-            -H 'Content-Type: application/json' \
-            -d '{
-              "query": "query { matchedUser(username: \"aritichawla2110\") { submitStatsGlobal { acSubmissionNum { difficulty count } } } }"
-            }' | python3 -c "
-import sys, json
-data = json.load(sys.stdin)
-if 'data' in data:
-    stats = data['data']['matchedUser']['submitStatsGlobal']['acSubmissionNum']
-    easy = medium = hard = 0
-    for s in stats:
-        if s['difficulty'] == 'Easy': easy = s['count']
-        elif s['difficulty'] == 'Medium': medium = s['count']
-        elif s['difficulty'] == 'Hard': hard = s['count']
-    total = easy + medium + hard
-    readme = f'''# aritichawla2110\n\n## About Me\nData Scientist | Software Developer | AI/ML Enthusiast\n\n## LeetCode Stats\n[![LeetCode](https://img.shields.io/badge/LeetCode-FFA116?style=flat&logo=leetcode&logoColor=black)](https://leetcode.com/u/aritichawla2110/)\n\n- **Total**: {total}
-- **Easy**: {easy} ✅
-- **Medium**: {medium} 🟡  
-- **Hard**: {hard} 🔴\n\n*Updated: $(date)*\n\n## Connect\n- [LeetCode](https://leetcode.com/u/aritichawla2110/)
-- [GitHub](https://github.com/ariti2110)
-- [LinkedIn](https://linkedin.com/in/ariti-chawla)'''
-    with open('README.md', 'w') as f:
-        f.write(readme)
-" 2>/dev/null || echo 'Failed to fetch stats'
-      
-      - name: Commit changes
+          cat > update_stats.py << 'EOF'
+import requests
+import json
+from datetime import datetime
+username = "aritichawla2110"
+query = "query { matchedUser(username: \\"aritichawla2110\\") { submitStatsGlobal { acSubmissionNum { difficulty count } } } }"
+headers = {"User-Agent": "Mozilla/5.0", "Content-Type": "application/json"}
+response = requests.post("https://leetcode.com/graphql", json={"query": query}, headers=headers, timeout=10)
+data = response.json()
+if "data" in data and data["data"]["matchedUser"]:
+  stats = data["data"]["matchedUser"]["submitStatsGlobal"]["acSubmissionNum"]
+  easy = medium = hard = 0
+  for s in stats:
+    if s["difficulty"] == "Easy": easy = s["count"]
+    elif s["difficulty"] == "Medium": medium = s["count"]
+    elif s["difficulty"] == "Hard": hard = s["count"]
+  total = easy + medium + hard
+  content = f"""# aritichawla2110\n\n## About\nData Scientist | Software Developer | AI/ML Enthusiast\n\n## LeetCode Stats\n- Total: {total}\n- Easy: {easy}\n- Medium: {medium}\n- Hard: {hard}\n\nUpdated: {datetime.now().isoformat()}\n\n[View Profile](https://leetcode.com/u/aritichawla2110/)"""
+  open("README.md", "w").write(content)
+EOF
+          pip install requests
+          python3 update_stats.py
+      - name: Commit
         run: |
           git config user.email "action@github.com"
-          git config user.name "GitHub Actions"
-          if git diff --quiet README.md; then
-            echo "No changes"
-          else
-            git add README.md
-            git commit -m "🔄 Update LeetCode stats [$(date +'%Y-%m-%d')]"
-            git push
-          fi
+          git config user.name "GitHub Action"
+          git add -A
+          git diff --quiet && git diff --staged --quiet || git commit -m "Update LeetCode stats" && git push
