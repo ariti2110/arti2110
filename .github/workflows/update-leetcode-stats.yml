@@ -15,23 +15,22 @@ jobs:
           python-version: '3.9'
       - run: pip install requests
       - name: Update README
-        run: python3 << 'PYTHON_SCRIPT'
-import requests, json, re
-from datetime import datetime
-
-response = requests.post('https://leetcode.com/graphql',
-  json={'query': 'query{matchedUser(username:"aritichawla2110"){submitStatsGlobal{acSubmissionNum{difficulty count}}}}'},
-  headers={'User-Agent': 'Mozilla/5.0', 'Content-Type': 'application/json'}, timeout=10)
-
-data = response.json()
-if data.get('data', {}).get('matchedUser'):
-  stats = {}
-  for stat in data['data']['matchedUser']['submitStatsGlobal']['acSubmissionNum']:
-    stats[stat['difficulty']] = stat['count']
-  total = sum(stats.values())
-  readme = f'''# aritichawla2110\n## About\nData Scientist | Software Developer\n## LeetCode\nTotal: {total}, Easy: {stats.get("Easy",0)}, Medium: {stats.get("Medium",0)}, Hard: {stats.get("Hard",0)}\nUpdated: {datetime.now().isoformat()}\n[Profile](https://leetcode.com/u/aritichawla2110/)'''
-  open('README.md','w').write(readme)
-PYTHON_SCRIPT
+        shell: python
+        run: |
+          import requests, json
+          from datetime import datetime
+          resp = requests.post('https://leetcode.com/graphql',
+            json={'query': 'query{matchedUser(username:"aritichawla2110"){submitStatsGlobal{acSubmissionNum{difficulty count}}}}'},
+            headers={'User-Agent': 'Mozilla/5.0', 'Content-Type': 'application/json'}, timeout=10)
+          data = resp.json()
+          if data.get('data', {}).get('matchedUser'):
+            stats = {}
+            for stat in data['data']['matchedUser']['submitStatsGlobal']['acSubmissionNum']:
+              stats[stat['difficulty']] = stat['count']
+            total = sum(stats.values())
+            readme = f'''# aritichawla2110\n## About\nData Scientist | Software Developer\n## LeetCode\n- Total: {total}\n- Easy: {stats.get("Easy",0)}\n- Medium: {stats.get("Medium",0)}\n- Hard: {stats.get("Hard",0)}\n\nUpdated: {datetime.now().isoformat()}\n[Profile](https://leetcode.com/u/aritichawla2110/)'''
+            with open('README.md','w') as f:
+              f.write(readme)
       - run: |
           git config user.email "action@github.com"
           git config user.name "GitHub Action"
