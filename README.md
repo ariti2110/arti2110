@@ -2,10 +2,10 @@
 ## About
 Data Scientist | Software Developer
 ## LeetCode
-- Total: 326
+- Total: 328
 - Easy: 67
-- Medium: 54
+- Medium: 55
 - Hard: 42
 
-Updated: 2026-03-08T02:21:27.518747
+Updated: 2026-03-08T06:46:03.553393
 [Profile](https://leetcode.com/u/aritichawla2110/)
